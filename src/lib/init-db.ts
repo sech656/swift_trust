@@ -15,12 +15,15 @@ export async function initDatabase() {
     await sequelize.authenticate();
     console.log('Database connection established successfully.');
 
-    // Prevent destructive sync in production
+    // Safe synchronization logic
     const isProd = process.env.NODE_ENV === 'production';
     
-    if (!isProd) {
-      // Use alter: true to update existing tables with new columns (address fields)
-      // If you encounter 'users_backup' errors, delete database.sqlite and restart.
+    if (isProd) {
+      // In production, only create missing tables (safe)
+      await sequelize.sync();
+      console.log('Production: Database tables verified/created.');
+    } else {
+      // In development, allow schema alterations
       try {
         await sequelize.query('DROP TABLE IF EXISTS users_backup;');
         await sequelize.sync({ alter: true });
@@ -28,9 +31,7 @@ export async function initDatabase() {
         console.warn('Sync with alter failed, trying standard sync:', syncError.message);
         await sequelize.sync();
       }
-      console.log('Database models synchronized.');
-    } else {
-      console.log('Production mode detected: skipping database sync.');
+      console.log('Development: Database models synchronized.');
     }
 
     // Seed default admin if not exists
