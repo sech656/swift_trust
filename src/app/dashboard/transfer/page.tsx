@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUI } from '@/contexts/UIContext';
@@ -11,7 +11,7 @@ import styles from './transfer.module.css';
 
 type Step = 'type' | 'recipient' | 'amount' | 'review' | 'confirm' | 'success' | 'error';
 
-export default function TransferPage() {
+function TransferContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { token, user } = useAuth();
@@ -379,14 +379,26 @@ export default function TransferPage() {
   };
 
   return (
+    <div className={styles.container}>
+      <div className={styles.header}>
+        <h2>{step === 'type' ? 'Transfer Money' : transferType === 'pay' ? 'Pay Anyone' : transferType === 'external' ? 'External Transfer' : 'Crypto Transfer'}</h2>
+      </div>
+      {renderStep()}
+    </div>
+  );
+}
+
+export default function TransferPage() {
+  return (
     <ProtectedRoute>
       <DashboardLayout>
-        <div className={styles.container}>
-          <div className={styles.header}>
-            <h2>{step === 'type' ? 'Transfer Money' : transferType === 'pay' ? 'Pay Anyone' : transferType === 'external' ? 'External Transfer' : 'Crypto Transfer'}</h2>
+        <Suspense fallback={
+          <div className="flex items-center justify-center min-h-[60vh]">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-900"></div>
           </div>
-          {renderStep()}
-        </div>
+        }>
+          <TransferContent />
+        </Suspense>
       </DashboardLayout>
     </ProtectedRoute>
   );

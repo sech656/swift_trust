@@ -1,6 +1,13 @@
 .container {
-  max-width: 800px;
+  max-width: 900px;
   margin: 0 auto;
+  padding: var(--spacing-xl);
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: var(--spacing-md);
+  }
 }
 
 .header {

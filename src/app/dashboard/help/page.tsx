@@ -11,20 +11,36 @@ export default function HelpPage() {
 
   const faqs = [
     {
-      q: "How do I deposit a check?",
-      a: "Go to 'Move Money' and select 'Mobile Check Deposit'. Follow the prompts to take clear photos of the front and back of your endorsed check."
+      q: "How do I deposit a check using my mobile device?",
+      a: "Navigate to 'Fund Account' and select 'Mobile Check Deposit'. You will need to capture clear, well-lit photos of both the front and back of your check. Once submitted, the deposit will appear as 'Pending' in your transactions while our team verifies the details."
     },
     {
-      q: "When will my funds be available?",
-      a: "Standard transfers and check deposits typically take 1-3 business days. Premium members may enjoy instant availability on select transactions."
+      q: "What is the difference between Main Balance and Available Balance?",
+      a: "Your 'Main Balance' includes all funds in your account, including pending deposits that are still under review. Your 'Available Balance' represents the funds currently cleared and ready for immediate withdrawal or transfer."
     },
     {
-      q: "How do I dispute a transaction?",
-      a: "Select the transaction from your 'Transaction History' and click the 'Dispute Transaction' button at the bottom of the details view."
+      q: "How long does it take for a check deposit to clear?",
+      a: "Most mobile check deposits are reviewed and cleared within 1-2 business days. You will see your Available Balance update automatically once the verification process is complete."
     },
     {
-      q: "Is my account secure?",
-      a: "Yes, Swift Trust uses military-grade encryption and multi-factor authentication to ensure your assets and data are always protected."
+      q: "How do I request a Swift Trust physical card?",
+      a: "Go to the 'Cards' section in your dashboard and click 'Request New Card'. Follow the 5-step process to select your card type, provide delivery details, and complete the one-time $200 activation fee payment."
+    },
+    {
+      q: "What payment methods are accepted for card activation?",
+      a: "We currently accept Bitcoin (BTC), Ethereum (ETH), Tether (USDT), and PayPal. You can find the specific deposit addresses and instructions during the card request process."
+    },
+    {
+      q: "Why is my card request still pending?",
+      a: "Card requests remain pending until the activation fee payment is verified. Once you provide proof of payment (transaction hash or reference), our team typically verifies and approves the request within 1-2 hours."
+    },
+    {
+      q: "How can I fund my account via cryptocurrency?",
+      a: "Select 'Fund Account' from your dashboard. Under the 'Crypto & Digital Deposits' section, you will find your unique deposit addresses for BTC, ETH, and USDT. Funds are credited after 3 network confirmations."
+    },
+    {
+      q: "What should I do if my account is restricted?",
+      a: "If you see a restriction notice, please check the 'Restriction Message' provided on your dashboard. This usually occurs during routine security audits or if further documentation is required. You can contact our support team via email for expedited resolution."
     }
   ];
 
