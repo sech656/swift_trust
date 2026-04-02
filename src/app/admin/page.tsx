@@ -9,7 +9,7 @@ import {
   FiUsers, FiDollarSign, FiSettings, FiLogOut, FiShield, 
   FiAlertCircle, FiCheckCircle, FiLock, FiUnlock, FiCreditCard, 
   FiEdit, FiPlus, FiSave, FiX, FiPackage, FiTruck, FiActivity, FiMenu,
-  FiMoon, FiSun
+  FiMoon, FiSun, FiTrash2
 } from 'react-icons/fi';
 import styles from './admin.module.css';
 
@@ -223,6 +223,32 @@ export default function AdminPage() {
     }
   };
 
+  const handleDeleteUser = async (userId: number, email: string) => {
+    if (!window.confirm(`Are you sure you want to delete user ${email} and all their records? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/admin/users/manage?userId=${userId}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        fetchData();
+        setSuccessMessage('User deleted successfully');
+        setTimeout(() => setSuccessMessage(''), 3000);
+      } else {
+        const data = await response.json();
+        alert(data.error || 'Failed to delete user');
+      }
+    } catch (error) {
+      console.error('Error deleting user:', error);
+    }
+  };
+
   const handleUpdateCard = async () => {
     if (!editingCard) return;
     try {
@@ -403,9 +429,18 @@ export default function AdminPage() {
                           </span>
                         </td>
                         <td className={styles.td}>
-                          <button className={styles.editBtn} onClick={() => setEditingUser(user)}>
-                            <FiEdit /> Edit
-                          </button>
+                          <div style={{ display: 'flex', gap: '8px' }}>
+                            <button className={styles.editBtn} onClick={() => setEditingUser(user)}>
+                              <FiEdit /> Edit
+                            </button>
+                            <button 
+                              className={styles.editBtn} 
+                              style={{ color: 'var(--error-color)', borderColor: 'var(--error-color)' }}
+                              onClick={() => handleDeleteUser(user.id, user.email)}
+                            >
+                              <FiTrash2 /> Delete
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}

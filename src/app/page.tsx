@@ -166,22 +166,6 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Mobile App CTA */}
-        <section className={`${styles.mobileCta} py-2xl`}>
-          <div className={styles.ctaBox}>
-            <div className={styles.ctaText}>
-              <h3>Banking anywhere, anytime.</h3>
-              <p>Download our mobile app for the best Swift Trust experience.</p>
-              <div className={styles.appBtns}>
-                <button className={styles.appBtn}>App Store</button>
-                <button className={styles.appBtn}>Play Store</button>
-              </div>
-            </div>
-            <div className={styles.ctaVisual}>
-              <FiPhone size={200} className={styles.phoneIcon} />
-            </div>
-          </div>
-        </section>
 
         {/* Final CTA */}
         <section className={`${styles.finalCta} py-2xl text-center`}>

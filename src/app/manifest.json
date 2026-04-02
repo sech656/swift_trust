@@ -1,0 +1,17 @@
+{
+  "name": "Swift Trust Bank",
+  "short_name": "Swift Trust",
+  "description": "The future of premium banking",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0052cc",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

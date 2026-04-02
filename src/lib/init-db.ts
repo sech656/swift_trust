@@ -15,23 +15,23 @@ export async function initDatabase() {
     await sequelize.authenticate();
     console.log('Database connection established successfully.');
 
-    // Safe synchronization logic
+    // Synchronization logic
     const isProd = process.env.NODE_ENV === 'production';
     
-    if (isProd) {
-      // In production, only create missing tables (safe)
-      await sequelize.sync();
-      console.log('Production: Database tables verified/created.');
-    } else {
-      // In development, allow schema alterations
-      try {
+    try {
+      if (isProd) {
+        // In production, try to sync missing tables/columns without dropping data
+        await sequelize.sync({ alter: true });
+        console.log('Production: Database schema synchronized.');
+      } else {
+        // In development, allow schema alterations and handle users_backup issues
         await sequelize.query('DROP TABLE IF EXISTS users_backup;');
         await sequelize.sync({ alter: true });
-      } catch (syncError: any) {
-        console.warn('Sync with alter failed, trying standard sync:', syncError.message);
-        await sequelize.sync();
+        console.log('Development: Database models synchronized.');
       }
-      console.log('Development: Database models synchronized.');
+    } catch (syncError: any) {
+      console.warn('Sync failed, falling back to standard sync:', syncError.message);
+      await sequelize.sync();
     }
 
     // Seed default admin if not exists

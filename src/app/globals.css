@@ -35,6 +35,10 @@
   --text-secondary: var(--neutral-slate);
   --border-color: var(--neutral-light-gray);
 
+  --success-color: var(--success-emerald);
+  --warning-color: var(--warning-amber);
+  --error-color: var(--error-crimson);
+
   --spacing-xs: 4px;
   --spacing-sm: 8px;
   --spacing-md: 16px;
