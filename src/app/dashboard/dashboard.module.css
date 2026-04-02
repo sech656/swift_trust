@@ -1,0 +1,354 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2xl);
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.welcomeSection {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.welcomeText h1 {
+  font-size: 1.75rem;
+  color: var(--primary-deep-blue);
+  margin-bottom: 4px;
+}
+
+.welcomeText p {
+  color: var(--neutral-slate);
+  font-size: 0.95rem;
+}
+
+.moreBtn {
+  background: white;
+  border: 1px solid var(--neutral-light-gray);
+  padding: var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  color: var(--neutral-slate);
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.moreMenu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 8px;
+  background: white;
+  border: 1px solid var(--neutral-light-gray);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  z-index: 100;
+  min-width: 160px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+:global([data-theme='dark']) .moreMenu {
+  background: var(--neutral-white);
+  border-color: var(--border-color);
+}
+
+.menuItem {
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  color: var(--neutral-charcoal);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.menuItem:hover {
+  background: var(--neutral-off-white);
+}
+
+.menuItemDanger {
+  color: var(--error-crimson);
+}
+
+.menuItemDanger:hover {
+  background: var(--error-light);
+}
+
+:global([data-theme='dark']) .moreBtn {
+  background: var(--neutral-white);
+  color: var(--neutral-charcoal);
+}
+
+.moreBtn:hover {
+  background: var(--neutral-off-white);
+  color: var(--primary-deep-blue);
+}
+
+.accountOverview {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: var(--spacing-xl);
+}
+
+@media (max-width: 768px) {
+  .accountOverview {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-lg);
+  }
+}
+
+.mainCard {
+  background: linear-gradient(135deg, #0A2463 0%, #1E3A8A 100%);
+  color: white;
+  padding: var(--spacing-2xl);
+  border-radius: var(--radius-xl);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 240px;
+  box-shadow: var(--shadow-xl);
+  position: relative;
+  overflow: hidden;
+}
+
+.mainCard::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -20%;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cardType {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-weight: 500;
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+.accountNumbers {
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+.balanceInfo {
+  margin: var(--spacing-xl) 0;
+}
+
+.balanceLabel {
+  font-size: 0.85rem;
+  opacity: 0.7;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.balanceAmount {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-top: 4px;
+}
+
+.cardFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.routingInfo span {
+  font-size: 0.7rem;
+  opacity: 0.7;
+  text-transform: uppercase;
+}
+
+.routingInfo p {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.statusBadge {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.quickActions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-md);
+}
+
+.actionBtn {
+  background: white;
+  padding: var(--spacing-md);
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s;
+}
+
+.actionBtn:hover {
+  transform: translateX(5px);
+  box-shadow: var(--shadow-md);
+}
+
+.actionIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.actionBtn span {
+  font-weight: 600;
+  color: var(--primary-deep-blue);
+}
+
+.recentActivity {
+  background: white;
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-xl);
+  box-shadow: var(--shadow-sm);
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-xl);
+}
+
+.sectionHeader h3 {
+  color: var(--primary-deep-blue);
+  font-size: 1.25rem;
+}
+
+.viewAllBtn {
+  background: none;
+  border: none;
+  color: var(--primary-sky-blue);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.transactionList {
+  display: flex;
+  flex-direction: column;
+}
+
+.transactionItem {
+  display: flex;
+  align-items: center;
+  padding: var(--spacing-md) 0;
+  border-bottom: 1px solid var(--neutral-off-white);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.transactionItem:last-child {
+  border-bottom: none;
+}
+
+.transactionItem:hover {
+  background: var(--neutral-off-white);
+  padding-left: var(--spacing-sm);
+  padding-right: var(--spacing-sm);
+  border-radius: var(--radius-md);
+}
+
+.tIconWrapper {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--neutral-off-white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: var(--spacing-md);
+}
+
+.debitIcon {
+  color: var(--error-crimson);
+}
+
+.creditIcon {
+  color: var(--success-emerald);
+}
+
+.tDetails {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.tTitle {
+  font-weight: 600;
+  color: var(--neutral-charcoal);
+  font-size: 0.95rem;
+}
+
+.tDate {
+  font-size: 0.8rem;
+  color: var(--neutral-slate);
+}
+
+.tAmountSection {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+}
+
+.tAmount {
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.negative {
+  color: var(--error-crimson);
+}
+
+.positive {
+  color: var(--success-emerald);
+}
+
+.tStatus {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--neutral-gray);
+}
+
+.loading, .emptyState {
+  text-align: center;
+  padding: var(--spacing-2xl);
+  color: var(--neutral-slate);
+  font-style: italic;
+}

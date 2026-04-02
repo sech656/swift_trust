@@ -1,0 +1,220 @@
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-lg) 5%;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  z-index: 1000;
+  border-bottom: 1px solid var(--neutral-light-gray);
+  transition: all 0.3s;
+}
+
+:global([data-theme='dark']) .header {
+  background: rgba(15, 23, 42, 0.95);
+  border-bottom-color: var(--neutral-light-gray);
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  cursor: pointer;
+}
+
+.logoIcon {
+  background: var(--primary-deep-blue);
+  color: white;
+  padding: var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo h1 {
+  font-size: 1.5rem;
+  color: var(--primary-deep-blue);
+  letter-spacing: -0.5px;
+  font-weight: 700;
+}
+
+:global([data-theme='dark']) .logo h1 {
+  color: white;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.themeToggle {
+  background: none;
+  border: none;
+  color: var(--primary-deep-blue);
+  cursor: pointer;
+  display: flex;
+  padding: var(--spacing-xs);
+  border-radius: var(--radius-sm);
+  transition: all 0.2s;
+}
+
+:global([data-theme='dark']) .themeToggle {
+  color: white;
+}
+
+.themeToggle:hover {
+  background: var(--neutral-light-gray);
+}
+
+:global([data-theme='dark']) .themeToggle:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.navBtn {
+  background: none;
+  border: none;
+  font-weight: 600;
+  color: var(--primary-deep-blue);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-md);
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+:global([data-theme='dark']) .navBtn {
+  color: var(--primary-sky-blue);
+}
+
+.navBtnPrimary {
+  background: var(--primary-deep-blue);
+  color: white !important;
+}
+
+.navBtnPrimary:hover {
+  background: var(--primary-ocean-blue);
+  transform: translateY(-1px);
+}
+
+.userBadge {
+  width: 36px;
+  height: 36px;
+  background: var(--primary-deep-blue);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.userBadge:hover {
+  transform: scale(1.05);
+  box-shadow: var(--shadow-md);
+}
+
+.navActions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+/* Footer */
+.footer {
+  background: var(--neutral-white);
+  padding: var(--spacing-3xl) 10% var(--spacing-xl);
+  border-top: 1px solid var(--neutral-light-gray);
+}
+
+:global([data-theme='dark']) .footer {
+  background: var(--neutral-off-white);
+}
+
+.footerGrid {
+  display: grid;
+  grid-template-columns: 1.5fr 3fr;
+  gap: var(--spacing-3xl);
+  margin-bottom: var(--spacing-3xl);
+}
+
+@media (max-width: 968px) {
+  .footerGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.footerBrand p {
+  color: var(--neutral-slate);
+  margin-top: var(--spacing-md);
+}
+
+.footerLinks {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing-xl);
+}
+
+.footerLinks h5 {
+  color: var(--primary-deep-blue);
+  margin-bottom: var(--spacing-lg);
+  font-size: 1.1rem;
+}
+
+:global([data-theme='dark']) .footerLinks h5 {
+  color: white;
+}
+
+.footerLinks ul {
+  list-style: none;
+  padding: 0;
+}
+
+.footerLinks li {
+  color: var(--neutral-slate);
+  margin-bottom: var(--spacing-sm);
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: color 0.2s;
+}
+
+.footerLinks li:hover {
+  color: var(--primary-sky-blue);
+}
+
+.footerBottom {
+  text-align: center;
+  padding-top: var(--spacing-xl);
+  border-top: 1px solid var(--neutral-light-gray);
+  color: var(--neutral-gray);
+  font-size: 0.9rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+@media (max-width: 768px) {
+  .footerBottom {
+    flex-direction: column;
+    gap: var(--spacing-md);
+  }
+}
+
+.legalLinks {
+  display: flex;
+  gap: var(--spacing-lg);
+}
+
+.legalLinks span {
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.legalLinks span:hover {
+  color: var(--primary-sky-blue);
+}

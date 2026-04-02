@@ -1,0 +1,183 @@
+.container {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.header {
+  margin-bottom: var(--spacing-2xl);
+}
+
+.header h2 {
+  color: var(--primary-deep-blue);
+  margin-bottom: var(--spacing-sm);
+}
+
+:global([data-theme='dark']) .header h2 {
+  color: white;
+}
+
+.header p {
+  color: var(--neutral-slate);
+  font-size: 1.125rem;
+}
+
+.optionsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--spacing-lg);
+}
+
+.cryptoSection {
+  margin-top: var(--spacing-3xl);
+  padding-top: var(--spacing-2xl);
+  border-top: 1px solid var(--border-color);
+}
+
+.cryptoSection h2 {
+  color: var(--primary-deep-blue);
+  margin-bottom: var(--spacing-md);
+  font-size: 1.5rem;
+}
+
+:global([data-theme='dark']) .cryptoSection h2 {
+  color: white;
+}
+
+.cryptoGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--spacing-xl);
+  margin-top: var(--spacing-lg);
+}
+
+.cryptoCard {
+  background: var(--neutral-white);
+  border: 1px solid var(--neutral-light-gray);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.cryptoHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.cryptoIcon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cryptoHeader h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--primary-deep-blue);
+  margin: 0;
+}
+
+.walletInfo {
+  background: var(--neutral-off-white);
+  padding: var(--spacing-md);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+}
+
+.walletLabel {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: var(--neutral-slate);
+  margin-bottom: 4px;
+  display: block;
+}
+
+.walletAddress {
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+  word-break: break-all;
+  color: var(--primary-deep-blue);
+  font-weight: 600;
+}
+
+.copyBtn {
+  margin-top: var(--spacing-sm);
+  background: var(--primary-deep-blue);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  transition: opacity 0.2s;
+}
+
+.copyBtn:hover {
+  opacity: 0.9;
+}
+
+.optionCard {
+  background: var(--neutral-white);
+  border: 1px solid var(--neutral-light-gray);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-2xl);
+  text-align: center;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+:global([data-theme='dark']) .optionCard {
+  background: var(--neutral-white);
+  border-color: var(--neutral-light-gray);
+}
+
+.optionCard:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--primary-sky-blue);
+}
+
+.iconWrapper {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto var(--spacing-lg);
+  background: var(--primary-light-blue);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-deep-blue);
+}
+
+:global([data-theme='dark']) .iconWrapper {
+  background: var(--primary-deep-blue);
+  color: white;
+}
+
+.optionCard h3 {
+  color: var(--neutral-charcoal);
+  margin-bottom: var(--spacing-sm);
+  font-size: 1.25rem;
+}
+
+:global([data-theme='dark']) .optionCard h3 {
+  color: var(--neutral-charcoal);
+}
+
+.optionCard p {
+  color: var(--neutral-slate);
+  font-size: 0.95rem;
+}
+
+@media (max-width: 767px) {
+  .optionsGrid {
+    grid-template-columns: 1fr;
+  }
+}
