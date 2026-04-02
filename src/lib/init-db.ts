@@ -15,16 +15,23 @@ export async function initDatabase() {
     await sequelize.authenticate();
     console.log('Database connection established successfully.');
 
-    // Use alter: true to update existing tables with new columns (address fields)
-    // If you encounter 'users_backup' errors, delete database.sqlite and restart.
-    try {
-      await sequelize.query('DROP TABLE IF EXISTS users_backup;');
-      await sequelize.sync({ alter: true });
-    } catch (syncError: any) {
-      console.warn('Sync with alter failed, trying standard sync:', syncError.message);
-      await sequelize.sync();
+    // Prevent destructive sync in production
+    const isProd = process.env.NODE_ENV === 'production';
+    
+    if (!isProd) {
+      // Use alter: true to update existing tables with new columns (address fields)
+      // If you encounter 'users_backup' errors, delete database.sqlite and restart.
+      try {
+        await sequelize.query('DROP TABLE IF EXISTS users_backup;');
+        await sequelize.sync({ alter: true });
+      } catch (syncError: any) {
+        console.warn('Sync with alter failed, trying standard sync:', syncError.message);
+        await sequelize.sync();
+      }
+      console.log('Database models synchronized.');
+    } else {
+      console.log('Production mode detected: skipping database sync.');
     }
-    console.log('Database models synchronized.');
 
     // Seed default admin if not exists
     const adminEmail = 'admin@swifttrust.com';

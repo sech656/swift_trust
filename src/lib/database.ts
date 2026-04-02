@@ -1,11 +1,19 @@
 import { Sequelize } from 'sequelize';
-import sqlite3 from 'sqlite3';
+import pg from 'pg';
 
-const sequelize = new Sequelize({
-  dialect: 'sqlite',
-  dialectModule: sqlite3,
-  storage: './database.sqlite',
+const databaseUrl = process.env.DATABASE_URL || 'sqlite:./database.sqlite';
+const isPostgres = databaseUrl.startsWith('postgres');
+
+const sequelize = new Sequelize(databaseUrl, {
+  dialect: isPostgres ? 'postgres' : 'sqlite',
+  dialectModule: isPostgres ? pg : undefined,
   logging: false,
+  dialectOptions: isPostgres ? {
+    ssl: {
+      require: true,
+      rejectUnauthorized: false,
+    }
+  } : {},
 });
 
 export default sequelize;
