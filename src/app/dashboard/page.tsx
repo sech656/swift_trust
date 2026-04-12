@@ -169,12 +169,13 @@ export default function DashboardPage() {
                           ${Number(user?.availableBalance || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </h2>
                       </div>
+                      {/* <br />
                       <div style={{ textAlign: 'right' }}>
                         <span className={styles.balanceLabel}>Main Balance</span>
                         <h4 style={{ fontSize: '1.2rem', fontWeight: 600, marginTop: '4px' }}>
                           ${Number(user?.balance || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </h4>
-                      </div>
+                      </div> */}
                     </div>
                   </div>
                   <div className={styles.cardFooter}>
