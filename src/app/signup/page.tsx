@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUI } from '@/contexts/UIContext';
-import { FiShield, FiUser, FiMail, FiPhone, FiLock, FiMapPin, FiGlobe } from 'react-icons/fi';
+import { FiShield, FiUser, FiMail, FiPhone, FiLock, FiMapPin, FiGlobe, FiZap } from 'react-icons/fi';
 import styles from './signup.module.css';
 
 export default function SignupPage() {
@@ -18,6 +18,7 @@ export default function SignupPage() {
     state: '',
     zipCode: '',
     country: 'United States',
+    referralCode: '',
     password: '',
     confirmPassword: '',
   });
@@ -65,6 +66,7 @@ export default function SignupPage() {
         state: formData.state,
         zipCode: formData.zipCode,
         country: formData.country,
+        referralCode: formData.referralCode,
       });
       showToast('Account created successfully', 'success');
     } catch (err: any) {
@@ -238,6 +240,22 @@ export default function SignupPage() {
                   placeholder="United States"
                 />
               </div>
+            </div>
+          </div>
+
+          <div className={styles.formGroup}>
+            <label htmlFor="referralCode">Referral Code (Required)</label>
+            <div className={styles.inputWrapper}>
+              <FiZap className={styles.inputIcon} />
+              <input
+                type="text"
+                id="referralCode"
+                name="referralCode"
+                value={formData.referralCode}
+                onChange={handleChange}
+                required
+                placeholder="Enter admin referral code"
+              />
             </div>
           </div>
 

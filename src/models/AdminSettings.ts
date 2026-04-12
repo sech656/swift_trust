@@ -5,16 +5,18 @@ interface AdminSettingsAttributes {
   id: number;
   key: string;
   value: string;
+  userId?: number | null;
   createdAt?: Date;
   updatedAt?: Date;
 }
 
-interface AdminSettingsCreationAttributes extends Optional<AdminSettingsAttributes, 'id'> {}
+interface AdminSettingsCreationAttributes extends Optional<AdminSettingsAttributes, 'id' | 'userId'> {}
 
 class AdminSettings extends Model<AdminSettingsAttributes, AdminSettingsCreationAttributes> implements AdminSettingsAttributes {
   public id!: number;
   public key!: string;
   public value!: string;
+  public userId?: number | null;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 }
@@ -29,17 +31,26 @@ AdminSettings.init(
     key: {
       type: DataTypes.STRING,
       allowNull: false,
-      unique: true,
     },
     value: {
       type: DataTypes.TEXT,
       allowNull: false,
+    },
+    userId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
     },
   },
   {
     sequelize,
     tableName: 'admin_settings',
     timestamps: true,
+    indexes: [
+      {
+        unique: true,
+        fields: ['key', 'userId']
+      }
+    ]
   }
 );
 

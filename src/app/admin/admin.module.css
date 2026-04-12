@@ -295,6 +295,59 @@
   border: 1px solid #dcfce7;
 }
 
+.permissionNotice {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background-color: #FEF3C7;
+  color: #D97706;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-top: 16px;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  border: 1px solid #F59E0B;
+}
+
+[data-theme='dark'] .permissionNotice {
+  background-color: rgba(245, 158, 11, 0.1);
+  color: #F59E0B;
+  border-color: rgba(245, 158, 11, 0.2);
+}
+
+.permissionNotice span {
+  flex: 1;
+}
+
+.settingsContainer {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 24px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.settingsHeader {
+  margin-bottom: 32px;
+}
+
+.settingsHeader h3 {
+  font-size: 1.25rem;
+  margin-bottom: 8px;
+}
+
+.settingsHeader p {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.settingsGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
 .settingsCard {
   background: var(--card-bg);
   padding: var(--spacing-xl);

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { initDatabase } from '@/lib/init-db';
 import { verifyToken } from '@/lib/auth';
 import Card from '@/models/Card';
+import User from '@/models/User';
 
 export async function GET(request: NextRequest) {
   try {
@@ -18,7 +19,21 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const cards = await Card.findAll({ order: [['createdAt', 'DESC']] });
+    const queryOptions: any = {
+      order: [['createdAt', 'DESC']],
+      include: []
+    };
+
+    if (!decoded.isSuperAdmin) {
+      queryOptions.include.push({
+        model: User,
+        where: { referredById: decoded.userId },
+        required: true,
+        attributes: []
+      });
+    }
+
+    const cards = await Card.findAll(queryOptions);
     return NextResponse.json({ success: true, cards });
   } catch (error) {
     console.error('Fetch cards error:', error);

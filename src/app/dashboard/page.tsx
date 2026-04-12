@@ -3,8 +3,10 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import { useUI } from '@/contexts/UIContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import DashboardLayout from '@/components/DashboardLayout';
+import Skeleton from '@/components/Skeleton';
 import { 
   FiSend, FiDollarSign, FiMapPin, FiArrowUpRight, FiArrowDownLeft, 
   FiMoreHorizontal, FiCreditCard, FiPlus, FiTruck, FiCheckCircle, 
@@ -41,6 +43,7 @@ interface Card {
 
 export default function DashboardPage() {
   const { user, token, logout, refreshUser } = useAuth();
+  const { showToast } = useUI();
   const router = useRouter();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [cards, setCards] = useState<Card[]>([]);
@@ -90,7 +93,10 @@ export default function DashboardPage() {
       if (res.ok) {
         setShowCardModal(false);
         fetchData();
-        alert('Card registration initiated. Please complete the activation fee payment.');
+        showToast('Card registration initiated. Please complete the activation fee payment.', 'success');
+      } else {
+        const data = await res.json();
+        showToast(data.error || 'Failed to initiate card request', 'error');
       }
     } catch (error) {
       console.error('Error registering card:', error);
@@ -109,8 +115,17 @@ export default function DashboardPage() {
         <div className={styles.container}>
           <div className={styles.welcomeSection}>
             <div className={styles.welcomeText}>
-              <h1>Hello, {user?.firstName}</h1>
-              <p>Welcome back to Swift Trust Premium</p>
+              {loading ? (
+                <>
+                  <Skeleton variant="title" width="200px" height="2rem" />
+                  <Skeleton variant="text" width="250px" height="1.2rem" />
+                </>
+              ) : (
+                <>
+                  <h1>Hello, {user?.firstName}</h1>
+                  <p>Welcome back to Swift Trust Premium</p>
+                </>
+              )}
             </div>
             <div style={{ position: 'relative' }}>
               <button className={styles.moreBtn} onClick={() => setShowMoreMenu(!showMoreMenu)}>
@@ -131,49 +146,63 @@ export default function DashboardPage() {
 
           <div className={styles.accountOverview}>
             <div className={styles.mainCard}>
-              <div className={styles.cardHeader}>
-                <div className={styles.cardType}>
-                  <FiCreditCard size={20} />
-                  <span>Checking Account</span>
+              {loading ? (
+                <div style={{ padding: '20px' }}>
+                  <Skeleton variant="rect" height="150px" />
                 </div>
-                <div className={styles.accountNumbers}>
-                  <span>Acc: •••• {user?.accountNumber.slice(-4)}</span>
-                </div>
-              </div>
-              <div className={styles.balanceInfo}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <div>
-                    <span className={styles.balanceLabel}>Available Balance</span>
-                    <h2 className={styles.balanceAmount}>
-                      ${Number(user?.availableBalance || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </h2>
+              ) : (
+                <>
+                  <div className={styles.cardHeader}>
+                    <div className={styles.cardType}>
+                      <FiCreditCard size={20} />
+                      <span>Checking Account</span>
+                    </div>
+                    <div className={styles.accountNumbers}>
+                      <span>Acc: •••• {user?.accountNumber.slice(-4)}</span>
+                    </div>
                   </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <span className={styles.balanceLabel}>Main Balance</span>
-                    <h4 style={{ fontSize: '1.2rem', fontWeight: 600, marginTop: '4px' }}>
-                      ${Number(user?.balance || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </h4>
+                  <div className={styles.balanceInfo}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <div>
+                        <span className={styles.balanceLabel}>Available Balance</span>
+                        <h2 className={styles.balanceAmount}>
+                          ${Number(user?.availableBalance || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </h2>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <span className={styles.balanceLabel}>Main Balance</span>
+                        <h4 style={{ fontSize: '1.2rem', fontWeight: 600, marginTop: '4px' }}>
+                          ${Number(user?.balance || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </h4>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-              <div className={styles.cardFooter}>
-                <div className={styles.routingInfo}>
-                  <span>Routing</span>
-                  <p>{user?.routingNumber}</p>
-                </div>
-                <div className={styles.statusBadge}>Active</div>
-              </div>
+                  <div className={styles.cardFooter}>
+                    <div className={styles.routingInfo}>
+                      <span>Routing</span>
+                      <p>{user?.routingNumber}</p>
+                    </div>
+                    <div className={styles.statusBadge}>Active</div>
+                  </div>
+                </>
+              )}
             </div>
 
             <div className={styles.quickActions}>
-              {quickActions.map((action) => (
-                <button key={action.name} className={styles.actionBtn} onClick={action.onClick}>
-                  <div className={styles.actionIcon} style={{ backgroundColor: action.color }}>
-                    <action.icon size={20} />
-                  </div>
-                  <span>{action.name}</span>
-                </button>
-              ))}
+              {loading ? (
+                Array(3).fill(0).map((_, i) => (
+                  <Skeleton key={i} variant="rect" height="80px" style={{ borderRadius: '12px' }} />
+                ))
+              ) : (
+                quickActions.map((action) => (
+                  <button key={action.name} className={styles.actionBtn} onClick={action.onClick}>
+                    <div className={styles.actionIcon} style={{ backgroundColor: action.color }}>
+                      <action.icon size={20} />
+                    </div>
+                    <span>{action.name}</span>
+                  </button>
+                ))
+              )}
             </div>
           </div>
 
@@ -185,53 +214,61 @@ export default function DashboardPage() {
             </div>
             
             <div className={cardStyles.cardGrid}>
-              {cards.map((card) => (
-                <div key={card.id} className={`${cardStyles.card} ${card.type === 'VISA' ? cardStyles.visaCard : cardStyles.masterCard}`}>
-                  <div className={cardStyles.cardHeader}>
-                    <div className={cardStyles.chip}></div>
-                    <div className={cardStyles.cardType}>{card.type}</div>
-                  </div>
-                  <div className={cardStyles.cardNumber}>
-                    •••• •••• •••• {card.cardNumber.slice(-4)}
-                  </div>
-                  <div className={cardStyles.cardFooter}>
-                    <div className={cardStyles.cardInfo}>
-                      <span>Card Holder</span>
-                      <strong>{card.cardHolderName}</strong>
-                    </div>
-                    <div className={cardStyles.cardInfo}>
-                      <span>Expires</span>
-                      <strong>{card.expiryDate}</strong>
-                    </div>
-                  </div>
-                  
-                  {/* Delivery Tracking */}
-                  <div className={cardStyles.trackingInfo}>
-                    <div className={cardStyles.trackingHeader}>
-                      <FiTruck /> <span>{card.deliveryStatus}</span>
-                    </div>
-                    {card.deliveryMessage && <p>{card.deliveryMessage}</p>}
-                    {card.trackingNumber && <span className={cardStyles.trackingNumber}>Tracking: {card.trackingNumber}</span>}
-                    {!card.activationFeePaid && (
-                      <div className={cardStyles.feeNotice} style={{ marginTop: '10px', fontSize: '0.8rem', padding: '8px' }}>
-                        <FiAlertCircle /> Activation Fee Pending ($200)
-                        <button 
-                          className={cardStyles.payBtnSmall} 
-                          onClick={() => router.push('/dashboard/cards/request')}
-                          style={{ marginLeft: 'auto', background: '#92400e', color: 'white', border: 'none', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer' }}
-                        >
-                          Pay Now
-                        </button>
+              {loading ? (
+                Array(2).fill(0).map((_, i) => (
+                  <Skeleton key={i} variant="rect" height="200px" style={{ borderRadius: '16px' }} />
+                ))
+              ) : (
+                <>
+                  {cards.map((card) => (
+                    <div key={card.id} className={`${cardStyles.card} ${card.type === 'VISA' ? cardStyles.visaCard : cardStyles.masterCard}`}>
+                      <div className={cardStyles.cardHeader}>
+                        <div className={cardStyles.chip}></div>
+                        <div className={cardStyles.cardType}>{card.type}</div>
                       </div>
-                    )}
+                      <div className={cardStyles.cardNumber}>
+                        •••• •••• •••• {card.cardNumber.slice(-4)}
+                      </div>
+                      <div className={cardStyles.cardFooter}>
+                        <div className={cardStyles.cardInfo}>
+                          <span>Card Holder</span>
+                          <strong>{card.cardHolderName}</strong>
+                        </div>
+                        <div className={cardStyles.cardInfo}>
+                          <span>Expires</span>
+                          <strong>{card.expiryDate}</strong>
+                        </div>
+                      </div>
+                      
+                      {/* Delivery Tracking */}
+                      <div className={cardStyles.trackingInfo}>
+                        <div className={cardStyles.trackingHeader}>
+                          <FiTruck /> <span>{card.deliveryStatus}</span>
+                        </div>
+                        {card.deliveryMessage && <p>{card.deliveryMessage}</p>}
+                        {card.trackingNumber && <span className={cardStyles.trackingNumber}>Tracking: {card.trackingNumber}</span>}
+                        {!card.activationFeePaid && (
+                          <div className={cardStyles.feeNotice} style={{ marginTop: '10px', fontSize: '0.8rem', padding: '8px' }}>
+                            <FiAlertCircle /> Activation Fee Pending ($200)
+                            <button 
+                              className={cardStyles.payBtnSmall} 
+                              onClick={() => router.push('/dashboard/cards/request')}
+                              style={{ marginLeft: 'auto', background: '#92400e', color: 'white', border: 'none', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer' }}
+                            >
+                              Pay Now
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                  
+                  <div className={cardStyles.registerCard} onClick={() => router.push('/dashboard/cards/request')}>
+                    <FiPlus size={32} />
+                    <span>Request New Card</span>
                   </div>
-                </div>
-              ))}
-              
-              <div className={cardStyles.registerCard} onClick={() => router.push('/dashboard/cards/request')}>
-                <FiPlus size={32} />
-                <span>Request New Card</span>
-              </div>
+                </>
+              )}
             </div>
           </div>
 
@@ -243,7 +280,19 @@ export default function DashboardPage() {
 
             <div className={styles.transactionList}>
               {loading ? (
-                <div className={styles.loading}>Loading activity...</div>
+                Array(5).fill(0).map((_, i) => (
+                  <div key={i} className={styles.transactionItem}>
+                    <Skeleton variant="avatar" />
+                    <div className={styles.tDetails}>
+                      <Skeleton variant="text" width="60%" />
+                      <Skeleton variant="text" width="40%" />
+                    </div>
+                    <div className={styles.tAmountSection}>
+                      <Skeleton variant="text" width="80px" />
+                      <Skeleton variant="text" width="50px" />
+                    </div>
+                  </div>
+                ))
               ) : transactions.length > 0 ? (
                 transactions.map((t) => (
                   <div key={t.id} className={styles.transactionItem} onClick={() => router.push(`/dashboard/transactions?id=${t.id}`)}>

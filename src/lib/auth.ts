@@ -11,22 +11,32 @@ export async function comparePassword(password: string, hashedPassword: string):
   return bcrypt.compare(password, hashedPassword);
 }
 
-export function generateToken(userId: number, isAdmin: boolean = false): string {
-  return jwt.sign({ userId, isAdmin }, JWT_SECRET, { expiresIn: '7d' });
+export function generateToken(userId: number, isAdmin: boolean = false, isSuperAdmin: boolean = false): string {
+  return jwt.sign({ userId, isAdmin, isSuperAdmin }, JWT_SECRET, { expiresIn: '7d' });
 }
 
-export function verifyToken(token: string): { userId: number; isAdmin: boolean } | null {
+export function verifyToken(token: string): { userId: number; isAdmin: boolean; isSuperAdmin: boolean } | null {
   try {
     if (!token) return null;
     const decoded = jwt.verify(token, JWT_SECRET) as any;
     return {
       userId: decoded.userId || decoded.id,
-      isAdmin: decoded.isAdmin || false
+      isAdmin: decoded.isAdmin || false,
+      isSuperAdmin: decoded.isSuperAdmin || false
     };
   } catch (error) {
     console.error('JWT Verification Error:', error);
     return null;
   }
+}
+
+export function generateReferralCode(): string {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let result = '';
+  for (let i = 0; i < 8; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
 }
 
 export function generateAccountNumber(): string {

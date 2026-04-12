@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import DashboardLayout from '@/components/DashboardLayout';
+import Skeleton from '@/components/Skeleton';
 import { format } from 'date-fns';
 import { FiArrowUpRight, FiArrowDownLeft, FiFilter, FiSearch, FiX, FiAlertTriangle, FiCheckCircle } from 'react-icons/fi';
 import styles from './transactions.module.css';
@@ -146,7 +147,28 @@ export default function TransactionsPage() {
 
           <div className={styles.transactionCard}>
             {loading ? (
-              <div className={styles.loading}>Loading transactions...</div>
+              <div className={styles.tableWrapper}>
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th className={styles.th}>Date</th>
+                      <th className={styles.th}>Transaction</th>
+                      <th className={styles.th}>Amount</th>
+                      <th className={styles.th}>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {Array(8).fill(0).map((_, i) => (
+                      <tr key={i} className={styles.tr}>
+                        <td className={styles.td}><Skeleton variant="text" width="80px" /></td>
+                        <td className={styles.td}><Skeleton variant="text" width="150px" /></td>
+                        <td className={styles.td}><Skeleton variant="text" width="60px" /></td>
+                        <td className={styles.td}><Skeleton variant="text" width="80px" /></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             ) : filteredTransactions.length > 0 ? (
               <div className={styles.tableWrapper}>
                 <table className={styles.table}>

@@ -33,8 +33,11 @@
 }
 
 :global([data-theme='dark']) .toast {
-  background: var(--neutral-charcoal);
-  color: white;
+  background: #111111;
+  color: #F8FAFC;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  border: 1px solid #222222;
+  border-left: 4px solid transparent;
 }
 
 .success { border-left-color: var(--success-emerald); }

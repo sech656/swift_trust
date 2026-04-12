@@ -3,8 +3,10 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import { useUI } from '@/contexts/UIContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import DashboardLayout from '@/components/DashboardLayout';
+import Skeleton from '@/components/Skeleton';
 import { FiCreditCard, FiPlus, FiTruck, FiAlertCircle, FiCheckCircle, FiX, FiShield } from 'react-icons/fi';
 import styles from '../cards.module.css';
 
@@ -27,6 +29,7 @@ interface Card {
 
 export default function CardsPage() {
   const { user, token } = useAuth();
+  const { showToast } = useUI();
   const router = useRouter();
   const [cards, setCards] = useState<Card[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<any>(null);
@@ -66,10 +69,11 @@ export default function CardsPage() {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) {
+        showToast('Card request cancelled successfully', 'success');
         fetchCards();
       } else {
         const data = await res.json();
-        alert(data.error || 'Failed to cancel request');
+        showToast(data.error || 'Failed to cancel request', 'error');
       }
     } catch (error) {
       console.error('Error cancelling request:', error);
@@ -78,25 +82,15 @@ export default function CardsPage() {
     }
   };
 
-  if (loading) {
-    return (
-      <ProtectedRoute>
-        <DashboardLayout>
-          <div className="flex items-center justify-center min-h-[60vh]">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-900"></div>
-          </div>
-        </DashboardLayout>
-      </ProtectedRoute>
-    );
-  }
-
   return (
     <ProtectedRoute>
       <DashboardLayout>
         <div className={styles.container}>
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-2xl font-bold text-blue-900 dark:text-white">Your Cards</h2>
-            {cards.length === 0 && (
+            {loading ? (
+              <Skeleton variant="button" />
+            ) : cards.length === 0 && (
               <button 
                 className="btn btn-primary flex items-center gap-2"
                 onClick={() => router.push('/dashboard/cards/request')}
@@ -106,7 +100,16 @@ export default function CardsPage() {
             )}
           </div>
 
-          {cards.length === 0 ? (
+          {loading ? (
+            <div className={styles.cardGrid}>
+              {Array(2).fill(0).map((_, i) => (
+                <div key={i} className="space-y-4">
+                  <Skeleton variant="rect" height="200px" style={{ borderRadius: '16px' }} />
+                  <Skeleton variant="rect" height="150px" style={{ borderRadius: '16px' }} />
+                </div>
+              ))}
+            </div>
+          ) : cards.length === 0 ? (
             <div className={styles.registerCard} onClick={() => router.push('/dashboard/cards/request')}>
               <FiCreditCard size={48} />
               <div className="text-center">

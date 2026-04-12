@@ -26,9 +26,21 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const transactions = await Transaction.findAll({
+    const queryOptions: any = {
       order: [['createdAt', 'DESC']],
-    });
+      include: []
+    };
+
+    if (!decoded.isSuperAdmin) {
+      queryOptions.include.push({
+        model: User,
+        where: { referredById: decoded.userId },
+        required: true,
+        attributes: []
+      });
+    }
+
+    const transactions = await Transaction.findAll(queryOptions);
 
     return NextResponse.json({
       success: true,

@@ -3,6 +3,7 @@ import { initDatabase } from '@/lib/init-db';
 import { verifyToken } from '@/lib/auth';
 import Card from '@/models/Card';
 import AdminSettings from '@/models/AdminSettings';
+import { getAdminSettingsForUser } from '@/lib/settings';
 
 export async function POST(request: NextRequest) {
   try {
@@ -80,14 +81,11 @@ export async function GET(request: NextRequest) {
 
     const cards = await Card.findAll({ where: { userId: decoded.userId } });
     
-    // Fetch all relevant settings in one query
-    const settings = await AdminSettings.findAll({
-      where: {
-        key: ['btc_wallet', 'eth_wallet', 'usdt_wallet', 'paypal_email']
-      }
-    });
+    // Fetch all relevant settings based on user's referrer
+    const keys = ['btc_wallet', 'eth_wallet', 'usdt_wallet', 'paypal_email'];
+    const settings = await getAdminSettingsForUser(decoded.userId, keys);
 
-    const getVal = (key: string) => settings.find(s => s.key === key)?.value;
+    const getVal = (key: string) => settings?.find(s => s.key === key)?.value;
 
     return NextResponse.json({
       success: true,

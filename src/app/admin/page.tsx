@@ -5,11 +5,12 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUI } from '@/contexts/UIContext';
 import AdminRoute from '@/components/AdminRoute';
+import Skeleton from '@/components/Skeleton';
 import { 
   FiUsers, FiDollarSign, FiSettings, FiLogOut, FiShield, 
   FiAlertCircle, FiCheckCircle, FiLock, FiUnlock, FiCreditCard, 
   FiEdit, FiPlus, FiSave, FiX, FiPackage, FiTruck, FiActivity, FiMenu,
-  FiMoon, FiSun, FiTrash2
+  FiMoon, FiSun, FiTrash2, FiUser
 } from 'react-icons/fi';
 import styles from './admin.module.css';
 
@@ -27,7 +28,12 @@ interface User {
   balance: number;
   availableBalance: number;
   isRestricted: boolean;
+  isAdmin: boolean;
+  isSuperAdmin: boolean;
+  allowCustomSettings: boolean;
+  referralCode?: string;
   restrictionMessage?: string;
+  referredById?: number;
   createdAt: string;
 }
 
@@ -61,51 +67,29 @@ interface Card {
 }
 
 export default function AdminPage() {
-  const { user, token, logout } = useAuth();
-  const { theme, toggleTheme } = useUI();
+  const { user, token, logout, refreshUser } = useAuth();
+  const { theme, toggleTheme, showToast } = useUI();
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<'users' | 'transactions' | 'cards' | 'settings'>('users');
+  const [activeTab, setActiveTab] = useState<'users' | 'transactions' | 'cards' | 'settings' | 'profile'>('users');
   const [users, setUsers] = useState<User[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [cards, setCards] = useState<Card[]>([]);
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [restrictingUser, setRestrictingUser] = useState<number | null>(null);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [creatingUser, setCreatingUser] = useState(false);
   const [editingCard, setEditingCard] = useState<Card | null>(null);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
-  const [restrictionMessage, setRestrictionMessage] = useState('');
   const [transferErrorMessage, setTransferErrorMessage] = useState('');
   const [btcWallet, setBtcWallet] = useState('');
   const [ethWallet, setEthWallet] = useState('');
   const [usdtWallet, setUsdtWallet] = useState('');
   const [paypalEmail, setPaypalEmail] = useState('');
   const [settingsLoading, setSettingsLoading] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
-
-  // Form states for new user
-  const [newUser, setNewUser] = useState({
-    email: '',
-    password: '',
-    firstName: '',
-    lastName: '',
-    phone: '',
-    address: '',
-    city: '',
-    state: '',
-    zipCode: '',
-    country: 'United States',
-    balance: '0',
-    availableBalance: '0',
-    isAdmin: false
-  });
-
-  useEffect(() => {
-    if (token) {
-      fetchData();
-    }
-  }, [token, activeTab]);
+  const [copying, setCopying] = useState(false);
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [canCustomize, setCanCustomize] = useState(false);
+  const [allAdmins, setAllAdmins] = useState<User[]>([]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -117,6 +101,11 @@ export default function AdminPage() {
         if (response.ok) {
           const data = await response.json();
           setUsers(data.users);
+          
+          // If super admin, extract all admins for the dropdown
+          if (user?.isSuperAdmin) {
+            setAllAdmins(data.users.filter((u: User) => u.isAdmin || u.isSuperAdmin));
+          }
         }
       } else if (activeTab === 'transactions') {
         const response = await fetch('/api/admin/transactions', {
@@ -146,6 +135,7 @@ export default function AdminPage() {
           setEthWallet(getVal('eth_wallet'));
           setUsdtWallet(getVal('usdt_wallet'));
           setPaypalEmail(getVal('paypal_email'));
+          setCanCustomize(data.allowCustomSettings ?? true); // Default true for Super Admin
         }
       }
     } catch (error) {
@@ -155,7 +145,102 @@ export default function AdminPage() {
     }
   };
 
-  const handleTabChange = (tab: 'users' | 'transactions' | 'cards' | 'settings') => {
+  // Profile Management states
+  const [profileData, setProfileData] = useState({
+    firstName: user?.firstName || '',
+    lastName: user?.lastName || '',
+    phone: user?.phone || '',
+    address: user?.address || '',
+    city: user?.city || '',
+    state: user?.state || '',
+    zipCode: user?.zipCode || '',
+    country: user?.country || '',
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+
+  // Form states for new user
+  const [newUser, setNewUser] = useState({
+    email: '',
+    password: '',
+    firstName: '',
+    lastName: '',
+    phone: '',
+    address: '',
+    city: '',
+    state: '',
+    zipCode: '',
+    country: 'United States',
+    balance: '0',
+    availableBalance: '0',
+    isAdmin: false,
+    isSuperAdmin: false
+  });
+
+  useEffect(() => {
+    if (token) {
+      fetchData();
+    }
+    if (user) {
+      setProfileData({
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        phone: user.phone || '',
+        address: user.address || '',
+        city: user.city || '',
+        state: user.state || '',
+        zipCode: user.zipCode || '',
+        country: user.country || '',
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      });
+    }
+  }, [token, activeTab, user]);
+
+  const copyReferralCode = () => {
+    if (!user?.referralCode) return;
+    navigator.clipboard.writeText(user.referralCode);
+    setCopying(true);
+    setTimeout(() => setCopying(false), 2000);
+  };
+
+  const handleUpdateProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (profileData.newPassword && profileData.newPassword !== profileData.confirmPassword) {
+      showToast('New passwords do not match', 'error');
+      return;
+    }
+
+    setProfileLoading(true);
+    try {
+      const response = await fetch('/api/admin/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(profileData),
+      });
+
+      if (response.ok) {
+        showToast('Profile updated successfully', 'success');
+        setProfileData(prev => ({ ...prev, currentPassword: '', newPassword: '', confirmPassword: '' }));
+        await refreshUser(); // Refresh the user context to reflect changes
+      } else {
+        const data = await response.json();
+        showToast(data.error || 'Failed to update profile', 'error');
+      }
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      showToast('An unexpected error occurred', 'error');
+    } finally {
+      setProfileLoading(false);
+    }
+  };
+
+  const handleTabChange = (tab: 'users' | 'transactions' | 'cards' | 'settings' | 'profile') => {
     setActiveTab(tab);
     setSidebarOpen(false);
   };
@@ -173,13 +258,12 @@ export default function AdminPage() {
 
       if (response.ok) {
         setCreatingUser(false);
-        setNewUser({ email: '', password: '', firstName: '', lastName: '', phone: '', address: '', city: '', state: '', zipCode: '', country: 'United States', balance: '0', availableBalance: '0', isAdmin: false });
+        setNewUser({ email: '', password: '', firstName: '', lastName: '', phone: '', address: '', city: '', state: '', zipCode: '', country: 'United States', balance: '0', availableBalance: '0', isAdmin: false, isSuperAdmin: false });
         fetchData();
-        setSuccessMessage('User created successfully');
-        setTimeout(() => setSuccessMessage(''), 3000);
+        showToast('User created successfully', 'success');
       } else {
         const data = await response.json();
-        alert(data.error || 'Failed to create user');
+        showToast(data.error || 'Failed to create user', 'error');
       }
     } catch (error) {
       console.error('Error creating user:', error);
@@ -208,15 +292,21 @@ export default function AdminPage() {
           zipCode: editingUser.zipCode,
           country: editingUser.country,
           isRestricted: editingUser.isRestricted,
-          restrictionMessage: editingUser.restrictionMessage
+          restrictionMessage: editingUser.restrictionMessage,
+          allowCustomSettings: editingUser.allowCustomSettings,
+          isAdmin: editingUser.isAdmin,
+          isSuperAdmin: editingUser.isSuperAdmin,
+          referredById: editingUser.referredById
         }),
       });
 
       if (response.ok) {
         setEditingUser(null);
         fetchData();
-        setSuccessMessage('User updated successfully');
-        setTimeout(() => setSuccessMessage(''), 3000);
+        showToast('User updated successfully', 'success');
+      } else {
+        const data = await response.json();
+        showToast(data.error || 'Failed to update user', 'error');
       }
     } catch (error) {
       console.error('Error updating user:', error);
@@ -238,11 +328,10 @@ export default function AdminPage() {
 
       if (response.ok) {
         fetchData();
-        setSuccessMessage('User deleted successfully');
-        setTimeout(() => setSuccessMessage(''), 3000);
+        showToast('User deleted successfully', 'success');
       } else {
         const data = await response.json();
-        alert(data.error || 'Failed to delete user');
+        showToast(data.error || 'Failed to delete user', 'error');
       }
     } catch (error) {
       console.error('Error deleting user:', error);
@@ -271,11 +360,10 @@ export default function AdminPage() {
       if (response.ok) {
         setEditingCard(null);
         await fetchData(); // Ensure data is re-fetched
-        setSuccessMessage('Card updated successfully');
-        setTimeout(() => setSuccessMessage(''), 3000);
+        showToast('Card updated successfully', 'success');
       } else {
         const data = await response.json();
-        alert(data.error || 'Failed to update card');
+        showToast(data.error || 'Failed to update card', 'error');
       }
     } catch (error) {
       console.error('Error updating card:', error);
@@ -302,11 +390,10 @@ export default function AdminPage() {
       if (response.ok) {
         setEditingTransaction(null);
         fetchData();
-        setSuccessMessage('Transaction updated successfully');
-        setTimeout(() => setSuccessMessage(''), 3000);
+        showToast('Transaction updated successfully', 'success');
       } else {
         const data = await response.json();
-        alert(data.error || 'Failed to update transaction');
+        showToast(data.error || 'Failed to update transaction', 'error');
       }
     } catch (error) {
       console.error('Error updating transaction:', error);
@@ -335,8 +422,7 @@ export default function AdminPage() {
         });
       }
 
-      setSuccessMessage('Settings saved successfully');
-      setTimeout(() => setSuccessMessage(''), 3000);
+      showToast('Settings saved successfully', 'success');
     } catch (error) {
       console.error('Error saving settings:', error);
     } finally {
@@ -370,7 +456,44 @@ export default function AdminPage() {
             <button className={activeTab === 'settings' ? styles.active : ''} onClick={() => handleTabChange('settings')}>
               <FiSettings /> <span>Settings</span>
             </button>
+            <button className={activeTab === 'profile' ? styles.active : ''} onClick={() => handleTabChange('profile')}>
+              <FiUser /> <span>My Profile</span>
+            </button>
           </nav>
+
+          {user?.isAdmin && user?.referralCode && (
+            <div 
+              style={{ 
+                padding: '16px', 
+                margin: '16px', 
+                backgroundColor: 'rgba(255,255,255,0.05)', 
+                borderRadius: '8px',
+                cursor: 'pointer',
+                position: 'relative'
+              }}
+              onClick={copyReferralCode}
+              title="Click to copy"
+            >
+              <p style={{ fontSize: '0.75rem', opacity: 0.7, marginBottom: '4px' }}>YOUR REFERRAL CODE</p>
+              <p style={{ fontSize: '1.1rem', fontWeight: 'bold', letterSpacing: '2px', color: '#3B82F6' }}>
+                {user.referralCode}
+              </p>
+              {copying && (
+                <span style={{ 
+                  position: 'absolute', 
+                  top: '8px', 
+                  right: '8px', 
+                  fontSize: '0.65rem', 
+                  backgroundColor: '#059669', 
+                  padding: '2px 6px', 
+                  borderRadius: '4px' 
+                }}>
+                  Copied!
+                </span>
+              )}
+            </div>
+          )}
+
           <button className={styles.logoutBtn} onClick={logout}>
             <FiLogOut /> <span>Logout</span>
           </button>
@@ -399,7 +522,6 @@ export default function AdminPage() {
                     <FiPlus /> New User
                   </button>
                 )}
-                {successMessage && <div className={styles.successBanner}><FiCheckCircle /> {successMessage}</div>}
               </div>
             </div>
           </header>
@@ -412,16 +534,37 @@ export default function AdminPage() {
                     <tr>
                       <th className={styles.th}>Name</th>
                       <th className={styles.th}>Email</th>
+                      <th className={styles.th}>Role</th>
                       <th className={styles.th}>Balance</th>
                       <th className={styles.th}>Status</th>
                       <th className={styles.th}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {users.map((user) => (
+                    {loading ? (
+                      Array(5).fill(0).map((_, i) => (
+                        <tr key={i}>
+                          <td className={styles.td}><Skeleton variant="text" width="120px" /></td>
+                          <td className={styles.td}><Skeleton variant="text" width="180px" /></td>
+                          <td className={styles.td}><Skeleton variant="text" width="100px" /></td>
+                          <td className={styles.td}><Skeleton variant="text" width="80px" /></td>
+                          <td className={styles.td}><Skeleton variant="text" width="60px" /></td>
+                          <td className={styles.td}><Skeleton variant="text" width="100px" /></td>
+                        </tr>
+                      ))
+                    ) : users.map((user) => (
                       <tr key={user.id}>
                         <td className={styles.td}>{user.firstName} {user.lastName}</td>
                         <td className={styles.td}>{user.email}</td>
+                        <td className={styles.td}>
+                          {user.isSuperAdmin ? (
+                            <span style={{ color: '#F59E0B', fontWeight: 'bold' }}>Super Admin</span>
+                          ) : user.isAdmin ? (
+                            <span style={{ color: '#3B82F6', fontWeight: 'bold' }}>Admin ({user.referralCode})</span>
+                          ) : (
+                            'User'
+                          )}
+                        </td>
                         <td className={styles.td}>${Number(user.balance).toLocaleString()}</td>
                         <td className={styles.td}>
                           <span className={`${styles.statusBadge} ${user.isRestricted ? styles.restricted : styles.active}`}>
@@ -463,7 +606,18 @@ export default function AdminPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {cards.map((card) => (
+                    {loading ? (
+                      Array(5).fill(0).map((_, i) => (
+                        <tr key={i}>
+                          <td className={styles.td}><Skeleton variant="text" width="120px" /></td>
+                          <td className={styles.td}><Skeleton variant="text" width="80px" /></td>
+                          <td className={styles.td}><Skeleton variant="text" width="100px" /></td>
+                          <td className={styles.td}><Skeleton variant="text" width="60px" /></td>
+                          <td className={styles.td}><Skeleton variant="text" width="100px" /></td>
+                          <td className={styles.td}><Skeleton variant="text" width="100px" /></td>
+                        </tr>
+                      ))
+                    ) : cards.map((card) => (
                       <tr key={card.id}>
                         <td className={styles.td}>{card.cardHolderName}</td>
                         <td className={styles.td}>{card.type}</td>
@@ -505,7 +659,19 @@ export default function AdminPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {transactions.map((t) => (
+                    {loading ? (
+                      Array(5).fill(0).map((_, i) => (
+                        <tr key={i}>
+                          <td className={styles.td}><Skeleton variant="text" width="100px" /></td>
+                          <td className={styles.td}><Skeleton variant="text" width="80px" /></td>
+                          <td className={styles.td}><Skeleton variant="text" width="80px" /></td>
+                          <td className={styles.td}><Skeleton variant="text" width="80px" /></td>
+                          <td className={styles.td}><Skeleton variant="text" width="60px" /></td>
+                          <td className={styles.td}><Skeleton variant="text" width="100px" /></td>
+                          <td className={styles.td}><Skeleton variant="text" width="100px" /></td>
+                        </tr>
+                      ))
+                    ) : transactions.map((t) => (
                       <tr key={t.id}>
                         <td className={styles.td}>{t.transactionId}</td>
                         <td className={styles.td}>{t.type}</td>
@@ -552,40 +718,184 @@ export default function AdminPage() {
               </div>
             )}
 
+            {activeTab === 'profile' && (
+              <div className={styles.settingsContainer}>
+                <div className={styles.settingsHeader}>
+                  <h3>Admin Profile Management</h3>
+                  <p>Update your personal information and account security</p>
+                </div>
+                
+                <form onSubmit={handleUpdateProfile} className={styles.settingsGrid}>
+                  <div className={styles.formGrid}>
+                    <div className={styles.formGroup}>
+                      <label>First Name</label>
+                      <input 
+                        type="text" 
+                        value={profileData.firstName} 
+                        onChange={e => setProfileData({...profileData, firstName: e.target.value})}
+                        required
+                      />
+                    </div>
+                    <div className={styles.formGroup}>
+                      <label>Last Name</label>
+                      <input 
+                        type="text" 
+                        value={profileData.lastName} 
+                        onChange={e => setProfileData({...profileData, lastName: e.target.value})}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className={styles.formGroup}>
+                    <label>Phone Number</label>
+                    <input 
+                      type="text" 
+                      value={profileData.phone} 
+                      onChange={e => setProfileData({...profileData, phone: e.target.value})}
+                      required
+                    />
+                  </div>
+
+                  <h4 style={{ margin: '10px 0', fontSize: '0.9rem', color: 'var(--primary-sky-blue)' }}>Address Details</h4>
+                  <div className={styles.formGroup}>
+                    <label>Street Address</label>
+                    <input 
+                      type="text" 
+                      value={profileData.address} 
+                      onChange={e => setProfileData({...profileData, address: e.target.value})}
+                    />
+                  </div>
+                  <div className={styles.formGrid}>
+                    <div className={styles.formGroup}>
+                      <label>City</label>
+                      <input 
+                        type="text" 
+                        value={profileData.city} 
+                        onChange={e => setProfileData({...profileData, city: e.target.value})}
+                      />
+                    </div>
+                    <div className={styles.formGroup}>
+                      <label>State</label>
+                      <input 
+                        type="text" 
+                        value={profileData.state} 
+                        onChange={e => setProfileData({...profileData, state: e.target.value})}
+                      />
+                    </div>
+                  </div>
+
+                  <h4 style={{ margin: '20px 0 10px 0', fontSize: '0.9rem', color: 'var(--primary-sky-blue)' }}>Security & Password</h4>
+                  <div className={styles.formGroup}>
+                    <label>Current Password (Required for changes)</label>
+                    <input 
+                      type="password" 
+                      value={profileData.currentPassword} 
+                      onChange={e => setProfileData({...profileData, currentPassword: e.target.value})}
+                      placeholder="Enter current password"
+                    />
+                  </div>
+                  <div className={styles.formGrid}>
+                    <div className={styles.formGroup}>
+                      <label>New Password (Optional)</label>
+                      <input 
+                        type="password" 
+                        value={profileData.newPassword} 
+                        onChange={e => setProfileData({...profileData, newPassword: e.target.value})}
+                        placeholder="Leave blank to keep current"
+                      />
+                    </div>
+                    <div className={styles.formGroup}>
+                      <label>Confirm New Password</label>
+                      <input 
+                        type="password" 
+                        value={profileData.confirmPassword} 
+                        onChange={e => setProfileData({...profileData, confirmPassword: e.target.value})}
+                        placeholder="Repeat new password"
+                      />
+                    </div>
+                  </div>
+                  
+                  <button 
+                    type="submit"
+                    className="btn btn-primary" 
+                    style={{ marginTop: '20px' }}
+                    disabled={profileLoading}
+                  >
+                    {profileLoading ? 'Updating...' : 'Update Profile'}
+                  </button>
+                </form>
+              </div>
+            )}
+
             {activeTab === 'settings' && (
-              <div className={styles.settingsCard}>
-                <div className={styles.settingsGroup}>
-                  <h3>Global Transfer Controls</h3>
+              <div className={styles.settingsContainer}>
+                <div className={styles.settingsHeader}>
+                  <h3>Global Platform Settings</h3>
+                  <p>Configure default wallet addresses and system messages</p>
+                  {!canCustomize && !user?.isSuperAdmin && (
+                    <div className={styles.permissionNotice}>
+                      <FiLock /> <span>Customizing wallet settings is currently disabled for your account. You are using the default platform settings.</span>
+                    </div>
+                  )}
+                </div>
+                
+                <div className={styles.settingsGrid}>
                   <div className={styles.formGroup}>
                     <label>Transfer Error Message</label>
-                    <textarea
-                      value={transferErrorMessage}
-                      onChange={(e) => setTransferErrorMessage(e.target.value)}
-                      placeholder="Maintenance in progress..."
+                    <textarea 
+                      value={transferErrorMessage} 
+                      onChange={e => setTransferErrorMessage(e.target.value)}
+                      placeholder="Message shown when users attempt a transfer"
+                      disabled={!canCustomize && !user?.isSuperAdmin}
                     />
                   </div>
                   
-                  <h3>Payment Wallets (Card Activation)</h3>
-                  <div className={styles.formGrid}>
-                    <div className={styles.formGroup}>
-                      <label>Bitcoin (BTC) Wallet</label>
-                      <input value={btcWallet} onChange={(e) => setBtcWallet(e.target.value)} />
-                    </div>
-                    <div className={styles.formGroup}>
-                      <label>Ethereum (ETH) Wallet</label>
-                      <input value={ethWallet} onChange={(e) => setEthWallet(e.target.value)} />
-                    </div>
-                    <div className={styles.formGroup}>
-                      <label>Tether (USDT) Wallet</label>
-                      <input value={usdtWallet} onChange={(e) => setUsdtWallet(e.target.value)} />
-                    </div>
-                  </div>
                   <div className={styles.formGroup}>
-                    <label>PayPal Email</label>
-                    <input value={paypalEmail} onChange={(e) => setPaypalEmail(e.target.value)} />
+                    <label>BTC Wallet Address</label>
+                    <input 
+                      type="text" 
+                      value={btcWallet} 
+                      onChange={e => setBtcWallet(e.target.value)}
+                      disabled={!canCustomize && !user?.isSuperAdmin}
+                    />
                   </div>
                   
-                  <button className="btn btn-primary" onClick={handleSaveSettings} disabled={settingsLoading}>
+                  <div className={styles.formGroup}>
+                    <label>ETH Wallet Address</label>
+                    <input 
+                      type="text" 
+                      value={ethWallet} 
+                      onChange={e => setEthWallet(e.target.value)}
+                      disabled={!canCustomize && !user?.isSuperAdmin}
+                    />
+                  </div>
+                  
+                  <div className={styles.formGroup}>
+                    <label>USDT (TRC20) Wallet Address</label>
+                    <input 
+                      type="text" 
+                      value={usdtWallet} 
+                      onChange={e => setUsdtWallet(e.target.value)}
+                      disabled={!canCustomize && !user?.isSuperAdmin}
+                    />
+                  </div>
+                  
+                  <div className={styles.formGroup}>
+                    <label>PayPal Email</label>
+                    <input 
+                      type="email" 
+                      value={paypalEmail} 
+                      onChange={e => setPaypalEmail(e.target.value)}
+                      disabled={!canCustomize && !user?.isSuperAdmin}
+                    />
+                  </div>
+                  
+                  <button 
+                    className="btn btn-primary" 
+                    onClick={handleSaveSettings} 
+                    disabled={settingsLoading || (!canCustomize && !user?.isSuperAdmin)}
+                  >
                     {settingsLoading ? 'Saving...' : 'Save Settings'}
                   </button>
                 </div>
@@ -623,6 +933,31 @@ export default function AdminPage() {
               <div className={styles.formGroup}><label>Initial Main Balance</label><input type="number" onChange={e => setNewUser({...newUser, balance: e.target.value})} /></div>
               <div className={styles.formGroup}><label>Initial Available Balance</label><input type="number" onChange={e => setNewUser({...newUser, availableBalance: e.target.value})} /></div>
             </div>
+
+            {user?.isSuperAdmin && (
+              <div className={styles.formGroup} style={{ flexDirection: 'row', alignItems: 'center', gap: '10px', marginTop: '10px' }}>
+                <input 
+                  type="checkbox" 
+                  id="isAdmin" 
+                  checked={newUser.isAdmin} 
+                  onChange={e => setNewUser({...newUser, isAdmin: e.target.checked, isSuperAdmin: e.target.checked ? newUser.isSuperAdmin : false})} 
+                />
+                <label htmlFor="isAdmin" style={{ margin: 0 }}>Register as Admin</label>
+              </div>
+            )}
+            
+            {user?.isSuperAdmin && newUser.isAdmin && (
+              <div className={styles.formGroup} style={{ flexDirection: 'row', alignItems: 'center', gap: '10px', marginTop: '10px' }}>
+                <input 
+                  type="checkbox" 
+                  id="isSuperAdminNew" 
+                  checked={newUser.isSuperAdmin} 
+                  onChange={e => setNewUser({...newUser, isSuperAdmin: e.target.checked})} 
+                />
+                <label htmlFor="isSuperAdminNew" style={{ margin: 0 }}>Register as Super Admin</label>
+              </div>
+            )}
+
             <div className={styles.modalActions}>
               <button className="btn btn-secondary" onClick={() => setCreatingUser(false)}>Cancel</button>
               <button className="btn btn-primary" onClick={handleCreateUser}>Create User</button>
@@ -673,6 +1008,59 @@ export default function AdminPage() {
               <div className={styles.formGroup}>
                 <label>Restriction Message</label>
                 <textarea value={editingUser.restrictionMessage || ''} onChange={e => setEditingUser({...editingUser, restrictionMessage: e.target.value})} />
+              </div>
+            )}
+            {user?.isSuperAdmin && editingUser.isAdmin && !editingUser.isSuperAdmin && (
+              <div className={styles.formGroup} style={{ flexDirection: 'row', alignItems: 'center', gap: '10px', marginTop: '10px' }}>
+                <input 
+                  type="checkbox" 
+                  id="allowCustomSettings" 
+                  checked={editingUser.allowCustomSettings} 
+                  onChange={e => setEditingUser({...editingUser, allowCustomSettings: e.target.checked})} 
+                />
+                <label htmlFor="allowCustomSettings" style={{ margin: 0 }}>Allow Custom Wallet Settings</label>
+              </div>
+            )}
+            {user?.isSuperAdmin && (
+              <div className={styles.formGroup} style={{ marginTop: '10px' }}>
+                <label>User Role</label>
+                <select 
+                  value={editingUser.isSuperAdmin ? 'super' : editingUser.isAdmin ? 'admin' : 'user'} 
+                  onChange={e => {
+                    const role = e.target.value;
+                    setEditingUser({
+                      ...editingUser,
+                      isAdmin: role === 'admin' || role === 'super',
+                      isSuperAdmin: role === 'super'
+                    });
+                  }}
+                >
+                  <option value="user">Standard User</option>
+                  <option value="admin">Admin</option>
+                  <option value="super">Super Admin</option>
+                </select>
+              </div>
+            )}
+            {user?.isSuperAdmin && !editingUser.isSuperAdmin && (
+              <div className={styles.formGroup} style={{ marginTop: '10px' }}>
+                <label>Referred By (Admin)</label>
+                <select 
+                  value={editingUser.referredById || ''} 
+                  onChange={e => {
+                    const val = e.target.value;
+                    setEditingUser({
+                      ...editingUser,
+                      referredById: val ? parseInt(val) : undefined
+                    });
+                  }}
+                >
+                  <option value="">No Referrer</option>
+                  {allAdmins.map(admin => (
+                    <option key={admin.id} value={admin.id}>
+                      {admin.firstName} {admin.lastName} ({admin.email})
+                    </option>
+                  ))}
+                </select>
               </div>
             )}
             <div className={styles.modalActions}>

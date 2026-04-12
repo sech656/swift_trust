@@ -19,6 +19,8 @@ interface User {
   balance: number;
   availableBalance: number;
   isAdmin: boolean;
+  isSuperAdmin: boolean;
+  referralCode?: string;
   isRestricted?: boolean;
 }
 
@@ -44,6 +46,7 @@ interface SignupData {
   state: string;
   zipCode: string;
   country: string;
+  referralCode: string;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);

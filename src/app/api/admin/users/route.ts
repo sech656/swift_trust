@@ -25,10 +25,24 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const users = await User.findAll({
+    const queryOptions: any = {
       attributes: { exclude: ['password'] },
       order: [['createdAt', 'DESC']],
-    });
+    };
+
+    // If not super admin, only show users referred by this admin
+    if (!decoded.isSuperAdmin) {
+      queryOptions.where = { referredById: decoded.userId };
+    } else {
+      // If super admin, allow filtering by referrer via query param
+      const { searchParams } = new URL(request.url);
+      const referrerId = searchParams.get('referrerId');
+      if (referrerId) {
+        queryOptions.where = { referredById: referrerId };
+      }
+    }
+
+    const users = await User.findAll(queryOptions);
 
     return NextResponse.json({
       success: true,

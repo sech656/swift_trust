@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const token = generateToken(user.id, user.isAdmin);
+    const token = generateToken(user.id, user.isAdmin, user.isSuperAdmin);
 
     return NextResponse.json({
       success: true,
@@ -59,6 +59,7 @@ export async function POST(request: NextRequest) {
         routingNumber: user.routingNumber,
         balance: user.balance,
         isAdmin: user.isAdmin,
+        isSuperAdmin: user.isSuperAdmin,
       },
     });
   } catch (error) {

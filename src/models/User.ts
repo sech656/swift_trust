@@ -18,13 +18,17 @@ interface UserAttributes {
   accountNumber: string;
   routingNumber: string;
   isAdmin: boolean;
+  isSuperAdmin: boolean;
+  allowCustomSettings: boolean;
+  referralCode?: string;
+  referredById?: number;
   isRestricted: boolean;
   restrictionMessage?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }
 
-interface UserCreationAttributes extends Optional<UserAttributes, 'id' | 'balance' | 'availableBalance' | 'isAdmin' | 'isRestricted' | 'restrictionMessage'> {}
+interface UserCreationAttributes extends Optional<UserAttributes, 'id' | 'balance' | 'availableBalance' | 'isAdmin' | 'isSuperAdmin' | 'allowCustomSettings' | 'referralCode' | 'referredById' | 'isRestricted' | 'restrictionMessage'> {}
 
 class User extends Model<UserAttributes, UserCreationAttributes> implements UserAttributes {
   public id!: number;
@@ -43,6 +47,10 @@ class User extends Model<UserAttributes, UserCreationAttributes> implements User
   public accountNumber!: string;
   public routingNumber!: string;
   public isAdmin!: boolean;
+  public isSuperAdmin!: boolean;
+  public allowCustomSettings!: boolean;
+  public referralCode?: string;
+  public referredById?: number;
   public isRestricted!: boolean;
   public restrictionMessage?: string;
   public readonly createdAt!: Date;
@@ -118,6 +126,23 @@ User.init(
       type: DataTypes.BOOLEAN,
       defaultValue: false,
     },
+    isSuperAdmin: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    },
+    allowCustomSettings: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    },
+    referralCode: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      unique: true,
+    },
+    referredById: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
     isRestricted: {
       type: DataTypes.BOOLEAN,
       defaultValue: false,
@@ -135,3 +160,5 @@ User.init(
 );
 
 export default User;
+// - Email : super.admin@st.com
+// - Password : Work12345$

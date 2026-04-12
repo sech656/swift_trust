@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import Transaction, { TransactionType, TransactionStatus } from '@/models/Transaction';
 import User from '@/models/User';
 import AdminSettings from '@/models/AdminSettings';
+import { getAdminSettingForUser } from '@/lib/settings';
 import { verifyToken, generateTransactionId } from '@/lib/auth';
 import { initDatabase } from '@/lib/init-db';
 
@@ -93,39 +94,13 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const transferErrorSetting = await AdminSettings.findOne({
-      where: { key: 'transfer_error_message' },
-    });
+    const transferErrorMessage = await getAdminSettingForUser(user.id, 'transfer_error_message');
 
-    if (transferErrorSetting && transferErrorSetting.value) {
-      const transactionId = generateTransactionId();
-      const transaction = await Transaction.create({
-        userId: user.id,
-        type,
-        status: TransactionStatus.FAILED,
-        amount,
-        recipientEmail,
-        recipientPhone,
-        recipientName,
-        externalBankName,
-        memo,
-        transactionId,
-        errorMessage: transferErrorSetting.value,
-      });
-
-      return NextResponse.json({
-        success: false,
-        error: transferErrorSetting.value,
-        transaction: {
-          id: transaction.id,
-          transactionId: transaction.transactionId,
-          type: transaction.type,
-          status: transaction.status,
-          amount: transaction.amount,
-          errorMessage: transaction.errorMessage,
-          createdAt: transaction.createdAt,
-        },
-      });
+    if (transferErrorMessage) {
+      return NextResponse.json(
+        { error: 'Transaction Failed', message: transferErrorMessage },
+        { status: 403 }
+      );
     }
 
     const transactionId = generateTransactionId();

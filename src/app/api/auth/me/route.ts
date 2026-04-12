@@ -51,7 +51,9 @@ export async function GET(request: NextRequest) {
         balance: user.balance,
         availableBalance: user.availableBalance,
         isAdmin: user.isAdmin,
+        isSuperAdmin: user.isSuperAdmin,
         isRestricted: user.isRestricted,
+        referralCode: user.referralCode,
       },
     });
   } catch (error) {

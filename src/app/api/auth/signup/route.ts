@@ -8,11 +8,20 @@ export async function POST(request: NextRequest) {
     await initDatabase();
 
     const body = await request.json();
-    const { email, password, firstName, lastName, phone, address, city, state, zipCode, country } = body;
+    const { email, password, firstName, lastName, phone, address, city, state, zipCode, country, referralCode } = body;
 
-    if (!email || !password || !firstName || !lastName || !phone || !address || !city || !state || !zipCode || !country) {
+    if (!email || !password || !firstName || !lastName || !phone || !address || !city || !state || !zipCode || !country || !referralCode) {
       return NextResponse.json(
-        { error: 'All fields are required' },
+        { error: 'All fields are required, including referral code' },
+        { status: 400 }
+      );
+    }
+
+    // Validate referral code
+    const admin = await User.findOne({ where: { referralCode, isAdmin: true } });
+    if (!admin) {
+      return NextResponse.json(
+        { error: 'Invalid referral code' },
         { status: 400 }
       );
     }
@@ -44,10 +53,12 @@ export async function POST(request: NextRequest) {
       routingNumber,
       balance: 0,
       isAdmin: false,
+      isSuperAdmin: false,
+      referredById: admin.id,
       isRestricted: false,
     });
 
-    const token = generateToken(user.id, user.isAdmin);
+    const token = generateToken(user.id, user.isAdmin, user.isSuperAdmin);
 
     return NextResponse.json({
       success: true,
@@ -67,6 +78,7 @@ export async function POST(request: NextRequest) {
         routingNumber: user.routingNumber,
         balance: user.balance,
         isAdmin: user.isAdmin,
+        isSuperAdmin: user.isSuperAdmin,
       },
     });
   } catch (error) {
